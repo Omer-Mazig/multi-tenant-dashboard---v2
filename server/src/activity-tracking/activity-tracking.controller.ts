@@ -9,7 +9,7 @@ import {
 import { Request } from 'express';
 import { ActivityTrackingService } from './activity-tracking.service';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
-import { TenantActiveSessionGuard } from '../auth/guards/tenant-active-session.guard';
+import { TenantActiveSessionGuard } from 'src/auth/guards/tenant-active-session.guard';
 
 @Controller('activity')
 export class ActivityTrackingController {
