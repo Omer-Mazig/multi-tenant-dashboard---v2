@@ -8,6 +8,7 @@ import {
   HttpCode,
   UseGuards,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
@@ -15,6 +16,7 @@ import { AuthenticatedGuard } from './guards/authenticated.guard';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
@@ -35,6 +37,7 @@ export class AuthController {
 
       return { success: true };
     } catch (error) {
+      this.logger.error('Invalid credentials');
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -52,7 +55,7 @@ export class AuthController {
 
     req.session.destroy((err) => {
       if (err) {
-        console.error('Error destroying session:', err);
+        this.logger.error('Error destroying session:', err);
         return res.status(500).json({ success: false });
       }
       res.status(200).json({ success: true });
@@ -66,6 +69,7 @@ export class AuthController {
 
     // The 'AuthenticatedGuard' ensures userId exists, but we add an extra check for safety...
     if (!userId) {
+      this.logger.error('User not authenticated');
       throw new UnauthorizedException('User not authenticated');
     }
 

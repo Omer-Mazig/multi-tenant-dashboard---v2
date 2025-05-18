@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
   Inject,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from '../auth.service';
@@ -13,6 +14,7 @@ import { ActivityTrackingService } from '../../activity-tracking/activity-tracki
 
 @Injectable()
 export class TenantActiveSessionGuard implements CanActivate {
+  private readonly logger = new Logger(TenantActiveSessionGuard.name);
   constructor(
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
@@ -25,6 +27,7 @@ export class TenantActiveSessionGuard implements CanActivate {
 
     // First check if the user is authenticated at all
     if (!request.session?.userId || !request.session?.isAuthenticated) {
+      this.logger.error('User not authenticated');
       throw new UnauthorizedException('Not authenticated');
     }
 
@@ -38,6 +41,7 @@ export class TenantActiveSessionGuard implements CanActivate {
 
     // Check if the user has access to this tenant
     if (!this.authService.isUserInTenant(userId, tenant.id)) {
+      this.logger.error('User does not have access to this tenant');
       throw new UnauthorizedException(
         'User does not have access to this tenant',
       );
@@ -58,6 +62,7 @@ export class TenantActiveSessionGuard implements CanActivate {
         lastActivity: new Date(),
         isActive: false,
       };
+      this.logger.warn('Tenant session has expired due to inactivity');
 
       throw new UnauthorizedException(
         'Tenant session has expired due to inactivity',

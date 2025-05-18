@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { UserActivity } from '../types';
 
 @Injectable()
 export class ActivityTrackingService {
+  private readonly logger = new Logger(ActivityTrackingService.name);
   private userActivity: UserActivity[] = [];
 
   // Idle timeout in milliseconds (20 seconds)
@@ -14,6 +15,9 @@ export class ActivityTrackingService {
     tenantId: string,
     timestamp: Date,
   ): Promise<void> {
+    this.logger.log(
+      `Recording activity for user ${userId} in tenant ${tenantId}`,
+    );
     // Remove old activity records for this user and tenant
     this.userActivity = this.userActivity.filter(
       (activity) =>
@@ -40,6 +44,10 @@ export class ActivityTrackingService {
   ): Promise<Date | null> {
     const activity = this.userActivity.find(
       (a) => a.userId === userId && a.tenantId === tenantId,
+    );
+
+    this.logger.log(
+      `Last activity for user ${userId} in tenant ${tenantId} is ${activity?.lastActivity}`,
     );
 
     return activity ? activity.lastActivity : null;
@@ -73,7 +81,7 @@ export class ActivityTrackingService {
         now.getTime() - activity.lastActivity.getTime();
 
       if (timeSinceLastActivity >= this.idleTimeout) {
-        console.log(
+        this.logger.warn(
           `User ${activity.userId} is idle in tenant ${activity.tenantId}`,
         );
         // Remove idle activity record
