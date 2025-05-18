@@ -2,6 +2,24 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: number | null = null;
+
+  return function (...args: Parameters<T>) {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    timeout = window.setTimeout(() => {
+      func(...args);
+      timeout = null;
+    }, wait) as unknown as number;
+  };
+}
+
 interface TenantActivityContextType {
   isActive: boolean;
   tenantSessionExpired: boolean;
@@ -36,6 +54,8 @@ export const TenantActivityProvider = ({
   const activityTimeoutRef = useRef<number | null>(null);
   const lastActivityRef = useRef<Date>(new Date());
   const initializedRef = useRef<boolean>(false);
+  // New ref to track if activity occurred since last heartbeat
+  const activityOccurredRef = useRef<boolean>(false);
 
   // Handle session expiry by logging out and redirecting
   const handleSessionExpiry = async () => {
@@ -63,24 +83,30 @@ export const TenantActivityProvider = ({
     }
   };
 
-  // Send heartbeat to server
+  // Send heartbeat to server - only called periodically by interval
   const sendHeartbeat = async () => {
-    try {
-      const response = await fetch("/api/activity/heartbeat", {
-        method: "POST",
-        credentials: "include",
-      });
+    // Only send heartbeat if activity has occurred since last heartbeat
+    if (activityOccurredRef.current) {
+      try {
+        const response = await fetch("/api/activity/heartbeat", {
+          method: "POST",
+          credentials: "include",
+        });
 
-      if (!response.ok) {
-        console.error("Failed to send heartbeat");
-        await handleSessionExpiry();
+        if (!response.ok) {
+          console.error("Failed to send heartbeat");
+          await handleSessionExpiry();
+        }
+
+        // Reset the activity flag after successful heartbeat
+        activityOccurredRef.current = false;
+      } catch (error) {
+        console.error("Error sending heartbeat:", error);
       }
-    } catch (error) {
-      console.error("Error sending heartbeat:", error);
     }
   };
 
-  // Check if tenant session is still active
+  // Check if tenant session is still active - only called periodically
   const checkTenantSession = async () => {
     try {
       const response = await fetch("/api/activity/check", {
@@ -96,6 +122,7 @@ export const TenantActivityProvider = ({
           now.getTime() - lastActivityRef.current.getTime();
 
         // If no activity for more than 20 seconds, expire the session
+        // TODO: For production, this should be 20 minutes (1200000 ms) instead of 20 seconds
         if (timeSinceLastActivity >= 20000) {
           await handleSessionExpiry();
         } else {
@@ -111,6 +138,7 @@ export const TenantActivityProvider = ({
 
   const resetTenantSession = () => {
     lastActivityRef.current = new Date();
+    activityOccurredRef.current = true;
     setTenantSessionExpired(false);
     startActivityTracking();
   };
@@ -120,15 +148,17 @@ export const TenantActivityProvider = ({
       clearInterval(heartbeatIntervalRef.current);
     }
 
-    // Send heartbeat every 5 seconds
+    // Send heartbeat every 10 seconds - should be less than idle timeout (20s)
+    // TODO: For production, adjust to reasonable values (e.g., 5 minutes heartbeat, 20 minutes idle)
     heartbeatIntervalRef.current = setInterval(() => {
       sendHeartbeat();
-    }, 5000) as unknown as number;
+    }, 10000) as unknown as number;
 
-    // Check tenant session every 2 seconds
+    // Check tenant session every 15 seconds - should be less than idle timeout (20s)
+    // TODO: For production, adjust to reasonable values (e.g., 2-3 minutes check, 20 minutes idle)
     activityTimeoutRef.current = setInterval(() => {
       checkTenantSession();
-    }, 2000) as unknown as number;
+    }, 15000) as unknown as number;
 
     // Send initial heartbeat
     sendHeartbeat();
@@ -151,6 +181,7 @@ export const TenantActivityProvider = ({
     if (!initializedRef.current && user) {
       initializedRef.current = true;
       lastActivityRef.current = new Date();
+      activityOccurredRef.current = true;
       startActivityTracking();
     }
   }, [user]);
@@ -159,18 +190,22 @@ export const TenantActivityProvider = ({
   useEffect(() => {
     if (user) {
       lastActivityRef.current = new Date();
+      activityOccurredRef.current = true;
       startActivityTracking();
     } else {
       clearHeartbeat();
       setIsActive(false);
     }
 
-    // Event listeners for user activity
-    const handleActivity = () => {
+    // Event listeners for user activity - only update local state, don't call API
+    const handleActivityInternal = () => {
       lastActivityRef.current = new Date();
+      activityOccurredRef.current = true;
       setIsActive(true);
-      sendHeartbeat();
     };
+
+    // Debounce activity handler to reduce state updates (300ms wait)
+    const handleActivity = debounce(handleActivityInternal, 300);
 
     // Track user activity on the page
     window.addEventListener("mousemove", handleActivity);
