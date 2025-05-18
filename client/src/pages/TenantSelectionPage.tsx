@@ -20,9 +20,8 @@ export default function TenantSelectionPage() {
   }
 
   const navigateToTenant = (subdomain: string) => {
-    // Determine if we're in localhost development or using lvh.me
-    const baseHost =
-      window.location.hostname === "localhost" ? "localhost" : "myapp.lvh.me";
+    // Always use lvh.me instead of localhost
+    const baseHost = "myapp.lvh.me";
 
     // Build the tenant URL
     const protocol = window.location.protocol;

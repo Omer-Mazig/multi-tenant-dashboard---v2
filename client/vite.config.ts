@@ -7,9 +7,22 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "http://myapp.lvh.me:3000",
         changeOrigin: false,
       },
     },
+    host: "myapp.lvh.me",
+    strictPort: true,
+    hmr: {
+      host: "myapp.lvh.me",
+    },
+    watch: {
+      usePolling: true,
+    },
+    cors: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
+    allowedHosts: [".myapp.lvh.me"],
   },
 });

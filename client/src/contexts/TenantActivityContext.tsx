@@ -54,9 +54,7 @@ export const TenantActivityProvider = ({
       // Redirect to login page on the main domain
       const protocol = window.location.protocol;
       const port = window.location.port ? `:${window.location.port}` : "";
-      const baseHost = window.location.hostname.includes("lvh.me")
-        ? "login.myapp.lvh.me"
-        : "localhost";
+      const baseHost = "login.myapp.lvh.me";
       window.location.href = `${protocol}//${baseHost}${port}/login`;
     } catch (error) {
       console.error("Error during session expiry:", error);

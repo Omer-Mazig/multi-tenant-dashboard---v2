@@ -7,7 +7,7 @@ async function bootstrap() {
 
   // Enable CORS for subdomains
   app.enableCors({
-    origin: [/\.lvh\.me$/, 'http://localhost:5173'], // Allow all subdomains and frontend dev server
+    origin: [/\.lvh\.me$/], // Allow all lvh.me subdomains
     credentials: true, // Required for cookies/session
   });
 
@@ -21,8 +21,8 @@ async function bootstrap() {
         httpOnly: true,
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-        domain:
-          process.env.NODE_ENV === 'production' ? '.myapp.lvh.me' : undefined,
+        // Don't set domain to allow cookies to be domain-specific
+        // This ensures each subdomain gets its own cookies
       },
     }),
   );

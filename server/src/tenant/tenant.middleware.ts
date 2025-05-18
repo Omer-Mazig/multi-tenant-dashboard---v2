@@ -10,7 +10,7 @@ export class TenantMiddleware implements NestMiddleware {
     const hostname = req.hostname;
 
     // Skip for the main authentication domain
-    if (hostname === 'login.myapp.lvh.me' || hostname === 'localhost') {
+    if (hostname === 'login.myapp.lvh.me' || hostname === 'myapp.lvh.me') {
       return next();
     }
 
@@ -18,8 +18,6 @@ export class TenantMiddleware implements NestMiddleware {
     let subdomain: string;
     if (hostname.includes('.myapp.lvh.me')) {
       subdomain = hostname.split('.myapp.lvh.me')[0];
-    } else if (hostname.includes('.localhost')) {
-      subdomain = hostname.split('.localhost')[0];
     } else {
       return next(); // No valid subdomain found
     }

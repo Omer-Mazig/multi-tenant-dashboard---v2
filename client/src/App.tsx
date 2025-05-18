@@ -29,8 +29,9 @@ function AppRoutes() {
   const isOnTenantSubdomain = () => {
     const hostname = window.location.hostname;
     return (
-      (hostname.includes(".lvh.me") && hostname !== "login.myapp.lvh.me") ||
-      (hostname.includes(".localhost") && hostname !== "login.localhost")
+      hostname.includes(".lvh.me") &&
+      hostname !== "login.myapp.lvh.me" &&
+      hostname !== "myapp.lvh.me"
     );
   };
 
