@@ -29,7 +29,6 @@ export class AuthController {
         loginData.password,
       );
 
-      // Set session data
       req.session.userId = userId;
       req.session.isAuthenticated = true;
       req.session.activeTenants = {};
@@ -43,7 +42,6 @@ export class AuthController {
   @Post('logout')
   @UseGuards(AuthenticatedGuard)
   async logout(@Req() req: Request, @Res() res: Response) {
-    // Clear the session cookie
     res.clearCookie('connect.sid', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -52,7 +50,6 @@ export class AuthController {
       domain: req.hostname.includes('lvh.me') ? '.myapp.lvh.me' : undefined,
     });
 
-    // Destroy the session
     req.session.destroy((err) => {
       if (err) {
         console.error('Error destroying session:', err);
@@ -67,7 +64,7 @@ export class AuthController {
   async getProfile(@Req() req: Request) {
     const userId = req.session.userId;
 
-    // The AuthenticatedGuard ensures userId exists, but we add an extra check
+    // The 'AuthenticatedGuard' ensures userId exists, but we add an extra check for safety...
     if (!userId) {
       throw new UnauthorizedException('User not authenticated');
     }

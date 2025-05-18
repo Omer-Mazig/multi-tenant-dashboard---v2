@@ -4,7 +4,7 @@ import { ActivityTrackingController } from './activity-tracking.controller';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [forwardRef(() => AuthModule)],
+  imports: [forwardRef(() => AuthModule)], // for circular dependency...
   providers: [ActivityTrackingService],
   controllers: [ActivityTrackingController],
   exports: [ActivityTrackingService],

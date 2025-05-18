@@ -64,7 +64,6 @@ export class TenantActiveSessionGuard implements CanActivate {
       );
     }
 
-    // Record this activity
     await this.activityTrackingService.recordActivity(
       userId,
       tenant.id,

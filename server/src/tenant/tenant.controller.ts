@@ -10,19 +10,17 @@ export class TenantController {
   @Get()
   getTenants(@Req() req: Request): Tenant[] {
     const userId = req.session.userId;
-    // If no user is logged in, return empty array
     if (!userId) {
       return [];
     }
 
-    // In a real app, we'd fetch user's tenants from the user service
-    // For now, we'll return all tenants
+    // In a real app, i will fetch user's tenants from the user service
+    // For now, i will return all tenants
     return this.tenantService.getAllTenants();
   }
 
   @Get('current')
   getCurrentTenant(@Req() req: Request): Tenant | undefined {
-    // The tenant is attached to the request by the TenantMiddleware
     return (req as any).tenant;
   }
 }

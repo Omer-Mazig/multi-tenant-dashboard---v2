@@ -6,7 +6,7 @@ export class AuthenticatedGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
-    // Check if the session contains userId and isAuthenticated flag
+    //  this is first check to see if the user is authenticated.
     return (
       request.session?.userId !== undefined &&
       request.session?.isAuthenticated === true

@@ -4,16 +4,11 @@ import { UserActivity } from '../types';
 
 @Injectable()
 export class ActivityTrackingService {
-  // In-memory storage for user activity
   private userActivity: UserActivity[] = [];
 
   // Idle timeout in milliseconds (20 seconds)
   private readonly idleTimeout = 20 * 1000;
 
-  // Initial grace period for new sessions (5 seconds)
-  private readonly initialGracePeriod = 5 * 1000;
-
-  // Record user activity for a specific tenant
   async recordActivity(
     userId: string,
     tenantId: string,
@@ -25,7 +20,6 @@ export class ActivityTrackingService {
         !(activity.userId === userId && activity.tenantId === tenantId),
     );
 
-    // Add new activity record
     this.userActivity.push({
       userId,
       tenantId,
