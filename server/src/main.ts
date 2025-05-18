@@ -6,13 +6,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: [/\.lvh\.me$/], // Allow all lvh.me subdomains
+    origin: [/\.lvh\.me$/], // Allow all lvh.me subdomains (for local development)
     credentials: true,
   });
 
   app.use(
     session({
-      secret: 'your-secret-key', // In production, use environment variables
+      secret: process.env.SESSION_SECRET || 'some-secret', // In production, use environment variables
       resave: false,
       saveUninitialized: false,
       cookie: {
